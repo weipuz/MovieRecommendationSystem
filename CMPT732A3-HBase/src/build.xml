@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<project name="ExampleClient" default="CreateJar">
+    <target name="CreateJar" description="Create Jar file">
+        <jar jarfile="ExampleClient.jar" basedir="../bin/" includes="org/CMPT732A3/*.class" />
+        <scp file="ExampleClient.jar" todir="weipuz:zwp7323790@rcg-linux-ts1.rcg.sfu.ca:CMPT732/"
+             trust="true" />
+    </target>
+</project>

@@ -2,6 +2,7 @@ package org.CMPT732A3;
 
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
@@ -13,6 +14,8 @@ public class ExampleClient {
 		Configuration config = HBaseConfiguration.create();
 		// Create table
 		HBaseAdmin admin = new HBaseAdmin(config);
+		
+		
 		HTableDescriptor htd = new HTableDescriptor(TableName.valueOf("weipuz_test1"));
 		HColumnDescriptor hcd = new HColumnDescriptor("data");
 		htd.addFamily(hcd);
@@ -32,19 +35,29 @@ public class ExampleClient {
 		p1.add(databytes, Bytes.toBytes("col2"), Bytes.toBytes("value2"));
 		table.put(p1);
 		
-		Get g = new Get(row1);
-		Result result = table.get(g);
-		//ResultScanner sc = table.getScanner
+		
+		Scan scan = new Scan();
+		scan.setCaching(20);
+		ResultScanner sc = table.getScanner(scan);
 		// ??
 		// fix the output format to the following format
 		// rowKey,  columnFamily:qualifier, value
-		String row = new String(result.getRow());
-		String fam = new String(result.listCells().get(0).getFamily());
-		String qualifier = new String(result.listCells().get(0).getQualifier());
-		String value = new String(result.listCells().get(0).getValue());
-		System.out.println("Get: " + row + ",  " + fam + ":" + qualifier +",  " + value);
-		
-		
+		for (Result result = sc.next(); (result != null); result = sc.next()) {
+			Get g = new Get(result.getRow());
+			Result Entireresult = table.get(g);
+			List<Cell> cellsc = Entireresult.listCells();
+			//System.out.println(Entireresult);
+			for (Cell cell : cellsc){
+				String row = new String(CellUtil.cloneRow(cell));
+				String fam = new String(CellUtil.cloneFamily(cell));
+				String qualifier = new String(CellUtil.cloneQualifier(cell));
+				String value = new String(CellUtil.cloneValue(cell));
+				System.out.println("Get: " + row + ",  " + fam + ":" + qualifier +",  " + value);
+			}
+			/*result.advance();
+			
+		*/
+		}
 		// Let's put more data the table
 		byte [] row2 = Bytes.toBytes("row2");
 		Put p2 = new Put(row2);
