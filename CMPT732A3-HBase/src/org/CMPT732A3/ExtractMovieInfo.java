@@ -39,17 +39,22 @@ public class ExtractMovieInfo {
 		while ((line = br.readLine()) != null) {
 		   // process the line.
 			String aline[] = line.split("::");
-			String row = Integer.toString(row_index);
-			row_index++;
+			//continue if line incomplete or reach the last empty line;
+			if(aline.length < 2) {
+				System.out.println(line);
+				continue;
+			}
 			
-			byte [] row1 = Bytes.toBytes(row);
+			//put the first two element into table, rowkey is movieID, first element is Title;
+			byte [] row1 = Bytes.toBytes(aline[0]);
 			Put p1 = new Put(row1);
 			byte [] databytes = Bytes.toBytes("data");
-			
-			p1.add(databytes, Bytes.toBytes("ID"), Bytes.toBytes(aline[0]));
 			p1.add(databytes, Bytes.toBytes("Title"), Bytes.toBytes(aline[1]));
-			p1.add(databytes, Bytes.toBytes("Genres"), Bytes.toBytes(aline[2]));
-				
+			
+			//put the third element into table;
+			if(aline.length == 3){
+				p1.add(databytes, Bytes.toBytes("Genres"), Bytes.toBytes(aline[2]));
+			}	
 			table.put(p1);		
 			
 			
@@ -58,8 +63,8 @@ public class ExtractMovieInfo {
 		br.close();
 		
 		// Drop the table
-		admin.disableTable(tablename);
-		admin.deleteTable(tablename);
+		//admin.disableTable(tablename);
+		//admin.deleteTable(tablename);
 			
 		
 

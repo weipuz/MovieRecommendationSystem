@@ -18,7 +18,7 @@ public class ExtractRatingInfo {
 		Configuration config = HBaseConfiguration.create();
 		// Create table
 		HBaseAdmin admin = new HBaseAdmin(config);
-		
+		long starttime = System.currentTimeMillis();
 		
 		HTableDescriptor htd = new HTableDescriptor(TableName.valueOf("weipuz_ratingInfo"));
 		HColumnDescriptor hcd = new HColumnDescriptor("data");
@@ -32,34 +32,36 @@ public class ExtractRatingInfo {
 		
 		// Run some operations -- a put, and a get
 		HTable table = new HTable(config, tablename);
+		table.setAutoFlushTo(true);
 		String filename = "ratings.dat";
 		BufferedReader br = new BufferedReader(new FileReader(filename));
 		String line;
-		//int row_index = 0;
+		
 		while ((line = br.readLine()) != null) {
 		   // process the line.
 			String aline[] = line.split("::");
-			//String row = Integer.toString(row_index);
-			//row_index++;
 			
-			byte [] row1 = Bytes.toBytes(aline[1]);
+			//continue if line incomplete or reach the last empty line;
+			if(aline.length < 4) {
+				System.out.println(line);
+				continue;
+			}
+			byte [] row1 = Bytes.toBytes(aline[1] + ":" + aline[0]);  //movieID + : + userID as row key;
 			Put p1 = new Put(row1);
 			byte [] databytes = Bytes.toBytes("data");
-			
-			p1.add(databytes, Bytes.toBytes("User_id"), Bytes.toBytes(aline[0]));
 			p1.add(databytes, Bytes.toBytes("Rating"), Bytes.toBytes(aline[2]));
-			//p1.add(databytes, Bytes.toBytes("Genres"), Bytes.toBytes(aline[2]));
-				
 			table.put(p1);		
 			
 			
 			
 		}
 		br.close();
-		
+		long endtime = System.currentTimeMillis();
+        long time = endtime - starttime;
+        System.out.println("time used: "+ time/1000 + " seconds");
 		// Drop the table
-		admin.disableTable(tablename);
-		admin.deleteTable(tablename);
+		//admin.disableTable(tablename);
+		//admin.deleteTable(tablename);
 			
 		
 
