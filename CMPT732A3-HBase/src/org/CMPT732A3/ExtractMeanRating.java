@@ -33,11 +33,12 @@ public class ExtractMeanRating {
 		
 		@Override
 		public void map(ImmutableBytesWritable row, Result value, Context context) throws IOException, InterruptedException {
-			String s = row.get().toString();
+			byte [] b = row.get();
+			String s = new String(b, "UTF-8");
 			String movieID_string = s.split(":")[0];
 			int movieID = Integer.valueOf(movieID_string);
 			byte[] rating_byte = value.getValue(columnFamily,qualifier);
-			int rating = Integer.parseInt(rating_byte.toString());
+			int rating = Integer.parseInt(new String(rating_byte, "UTF-8"));
 			context.write(new IntWritable(movieID), new IntWritable(rating));
 			
 		}
