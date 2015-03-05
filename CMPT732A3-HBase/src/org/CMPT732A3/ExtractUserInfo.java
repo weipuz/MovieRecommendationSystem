@@ -44,7 +44,6 @@ public class ExtractUserInfo {
 				System.out.println(line);
 				continue;
 			}
-			
 			//put the first two element into table, rowkey is movieID, first element is Title;
 			int id = Integer.valueOf(aline[0]);
 			byte [] row1 = Bytes.toBytes(String.format("%04d", id));
@@ -53,13 +52,13 @@ public class ExtractUserInfo {
 			p1.add(databytes, Bytes.toBytes("Gender"), Bytes.toBytes(aline[1]));
 			
 			//put the third element into table;
-			if(aline.length == 3){
+			if(aline.length >= 3){
 				p1.add(databytes, Bytes.toBytes("Age"), Bytes.toBytes(aline[2]));
 			}	
-			if(aline.length == 4){
+			if(aline.length >= 4){
 				p1.add(databytes, Bytes.toBytes("Occupation"), Bytes.toBytes(aline[3]));
 			}
-			if(aline.length == 5){
+			if(aline.length >= 5){
 				p1.add(databytes, Bytes.toBytes("Zipcode"), Bytes.toBytes(aline[4]));
 			}
 			table.put(p1);		
