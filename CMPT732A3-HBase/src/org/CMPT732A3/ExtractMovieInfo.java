@@ -14,13 +14,14 @@ public class ExtractMovieInfo {
 
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		
+		String movieTable = args[0];//movieTable = "weipuz_movieInfo" or "weipuz_movieInfo_1M";
+		String input = args[1]; //String filename = "movies.dat"; or "1M/movies.dat";
 		Configuration config = HBaseConfiguration.create();
 		// Create table
 		HBaseAdmin admin = new HBaseAdmin(config);
 		
 		
-		HTableDescriptor htd = new HTableDescriptor(TableName.valueOf("weipuz_movieInfo"));
+		HTableDescriptor htd = new HTableDescriptor(TableName.valueOf(movieTable));
 		HColumnDescriptor hcd = new HColumnDescriptor("data");
 		htd.addFamily(hcd);
 		admin.createTable(htd);
@@ -32,10 +33,13 @@ public class ExtractMovieInfo {
 		
 		// Run some operations -- a put, and a get
 		HTable table = new HTable(config, tablename);
-		String filename = "movies.dat";
-		BufferedReader br = new BufferedReader(new FileReader(filename));
+		if(table.isAutoFlush()){
+			table.setAutoFlushTo(false);
+			System.out.println("Enable Client side flush;");
+		}
+		BufferedReader br = new BufferedReader(new FileReader(input));
 		String line;
-		int row_index = 0;
+		int count = 0;
 		while ((line = br.readLine()) != null) {
 		   // process the line.
 			String aline[] = line.split("::");
@@ -56,10 +60,14 @@ public class ExtractMovieInfo {
 				p1.add(databytes, Bytes.toBytes("Genres"), Bytes.toBytes(aline[2]));
 			}	
 			table.put(p1);		
+			if(count==100){
+				count=0;
+				table.flushCommits();
+			}
 			
-			
-			
+			count++;
 		}
+		table.flushCommits();
 		br.close();
 		
 		// Drop the table
