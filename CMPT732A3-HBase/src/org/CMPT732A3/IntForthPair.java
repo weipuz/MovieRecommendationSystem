@@ -7,27 +7,29 @@ import java.io.IOException;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.WritableComparable;
  
-public class IntTriple implements WritableComparable{
+public class IntForthPair implements WritableComparable{
  
     private IntWritable first;
     private IntWritable second;
     private IntWritable third;
+    private IntWritable forth;
 
     
     
  
-    public IntTriple(IntWritable first, IntWritable second,IntWritable third) {
-        set(first.get(), second.get(),third.get());
+    public IntForthPair(IntWritable first, IntWritable second,IntWritable third,IntWritable forth) {
+        set(first.get(), second.get(),third.get(),forth.get());
     }
  
-    public IntTriple() {
+    public IntForthPair() {
         first = new IntWritable();
         second = new IntWritable();
         third = new IntWritable();
+        forth = new IntWritable();
     }
  
-    public IntTriple(int first, int second,int third) {
-        set(first, second,third);
+    public IntForthPair(int first, int second,int third,int forth) {
+        set(first, second,third,forth);
     }
  
     
@@ -43,11 +45,16 @@ public class IntTriple implements WritableComparable{
         return this.third;
     }
     
+    public IntWritable getForth() {
+        return this.forth;
+    }
+    
  
-    public void set(int first, int second, int third) {
+    public void set(int first, int second, int third,int forth) {
         this.first = new IntWritable(first);
         this.second = new IntWritable(second);
         this.third = new IntWritable(third);
+        this.forth = new IntWritable(forth);
     }
  
     @Override
@@ -55,6 +62,7 @@ public class IntTriple implements WritableComparable{
         first.readFields(in);
         second.readFields(in);
         third.readFields(in);
+        forth.readFields(in);
     }
  
     @Override
@@ -62,16 +70,17 @@ public class IntTriple implements WritableComparable{
         first.write(out);
         second.write(out);
         third.write(out);
+        forth.write(out);
     }
  
     @Override
     public String toString() {
-        return this.first.toString() + ":" + this.second.toString() + ":" + this.third.toString();
+        return this.first.toString() + ":" + this.second.toString() + ":" + this.third.toString() +  ":" + this.forth.toString();
     }
  
     @Override
     public int compareTo( Object o) {
-    	IntTriple tp = (IntTriple) o;
+    	IntForthPair tp = (IntForthPair) o;
         int cmp = first.compareTo(tp.first);
  
         if (cmp != 0) {
@@ -89,9 +98,9 @@ public class IntTriple implements WritableComparable{
     @Override
     public boolean equals(Object o)
     {
-        if(o instanceof IntTriple)
+        if(o instanceof IntForthPair)
         {
-        	IntTriple tp = (IntTriple) o;
+        	IntForthPair tp = (IntForthPair) o;
             return first.equals(tp.first) && second.equals(tp.second);
         }
         return false;
