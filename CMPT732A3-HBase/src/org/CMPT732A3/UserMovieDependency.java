@@ -31,14 +31,14 @@ public class UserMovieDependency {
 	/*-------------------------Mapper 1------------------------------------*/
 	static class UserMapper_1 extends TableMapper<Text, Text>{
 		private byte[] columnFamily;
-		private byte[] qualifier;
+		private byte[] qualifier_genres;
 		
 		@Override
 		protected void setup(Context context){
 			// get column family and qualifer from context.getConfiguration()
 			Configuration conf = context.getConfiguration();
-			columnFamily = Bytes.toBytes(conf.get("conf.columnFamily",null));
-			qualifier = Bytes.toBytes(conf.get("conf.qualifier",null));
+			columnFamily = Bytes.toBytes(conf.get("conf.columnFamily","data"));
+			qualifier_genres = Bytes.toBytes(conf.get("conf.qualifier_occupation","Genres"));
 		}
 		
 		@Override
@@ -48,7 +48,7 @@ public class UserMovieDependency {
 			String[] row_array = s.split(":");
 			String movierowkey =  row_array[0];
 			if(row_array.length == 1){
-				byte[] genres = value.getValue(columnFamily,qualifier);
+				byte[] genres = value.getValue(columnFamily,qualifier_genres);
 				if(genres!=null){
 					String genres_string = new String(genres, "UTF-8");
 					context.write(new Text(movierowkey), new Text("genres:"+ genres_string));
@@ -92,7 +92,7 @@ static class UserReducer_1 extends TableReducer<Text, Text, ImmutableBytesWritab
 			for(String user : users){
 				byte [] rowkey = Bytes.toBytes( key.toString() + ":" + user);  //movieID + : + userID as row key;
 				Put put = new Put(rowkey);
-				put.add(Bytes.toBytes("data"), Bytes.toBytes("genres"), Bytes.toBytes(genres));
+				put.add(Bytes.toBytes("data"), Bytes.toBytes("Genres"), Bytes.toBytes(genres));
 				context.write(new ImmutableBytesWritable(rowkey), put);
 			}
 			
@@ -113,11 +113,11 @@ static class UserMapper_2 extends TableMapper<Text, Text>{
 	protected void setup(Context context){
 		// get column family and qualifer from context.getConfiguration()
 		Configuration conf = context.getConfiguration();
-		columnFamily = Bytes.toBytes(conf.get("conf.columnFamily",null));
-		qualifier_age = Bytes.toBytes("Age");
-		qualifier_gender = Bytes.toBytes("Gender");
-		qualifier_occupation = Bytes.toBytes("Occupation");
-		qualifier_genres = Bytes.toBytes("genres");
+		columnFamily = Bytes.toBytes(conf.get("conf.columnFamily","data"));
+		qualifier_age = Bytes.toBytes(conf.get("conf.qualifier_age","Age"));
+		qualifier_gender = Bytes.toBytes(conf.get("conf.qualifier_gender","Gender"));
+		qualifier_occupation = Bytes.toBytes(conf.get("conf.qualifier_occupation","Occupation"));
+		qualifier_genres = Bytes.toBytes(conf.get("conf.qualifier_occupation","Genres"));
 		
 	}
 	
@@ -219,7 +219,6 @@ static class UserReducer_2 extends TableReducer<Text, Text, ImmutableBytesWritab
 //Mapper 2 will join temp table and the user info table on the userID 
 static class UserMapper_3 extends TableMapper<Text, IntWritable>{
 	private byte[] columnFamily;
-	private byte[] qualifier;
 	private byte[] qualifier_age;
 	private byte[] qualifier_gender;
 	private byte[] qualifier_occupation;
@@ -229,11 +228,11 @@ static class UserMapper_3 extends TableMapper<Text, IntWritable>{
 	protected void setup(Context context){
 		// get column family and qualifer from context.getConfiguration()
 		Configuration conf = context.getConfiguration();
-		columnFamily = Bytes.toBytes(conf.get("conf.columnFamily",null));
-		qualifier_age = Bytes.toBytes("Age");
-		qualifier_gender = Bytes.toBytes("Gender");
-		qualifier_occupation = Bytes.toBytes("Occupation");
-		qualifier_genres = Bytes.toBytes("Genres");
+		columnFamily = Bytes.toBytes(conf.get("conf.columnFamily","data"));
+		qualifier_age = Bytes.toBytes(conf.get("conf.qualifier_age","Age"));
+		qualifier_gender = Bytes.toBytes(conf.get("conf.qualifier_gender","Gender"));
+		qualifier_occupation = Bytes.toBytes(conf.get("conf.qualifier_occupation","Occupation"));
+		qualifier_genres = Bytes.toBytes(conf.get("conf.qualifier_genres","Genres"));
 		
 	}
 	
@@ -290,25 +289,59 @@ static class UserReducer_3 extends Reducer <Text, IntWritable, Text, IntWritable
 	}
 }
 	
-	public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException{
+public static final Map<String, String> occpuations = new HashMap<String, String>();
+static{	
+	
+	occpuations.put("0",  "other");
+	occpuations.put("1",  "academic/educator");
+	occpuations.put("2",  "artist");
+	occpuations.put("3",  "clerical/admin");
+	occpuations.put("4",  "college/grad student");
+	occpuations.put("5",  "customer service");
+	occpuations.put("6",  "doctor/health care");
+	occpuations.put("7",  "executive/managerial");
+	occpuations.put("8",  "farmer");
+	occpuations.put("9",  "homemaker");
+	occpuations.put("10",  "K-12 student");
+	occpuations.put("11",  "lawyer");
+	occpuations.put("12",  "programmer");
+	occpuations.put("13",  "retired");
+	occpuations.put("14",  "sales/marketing");
+	occpuations.put("15",  "scientist");
+	occpuations.put("16",  "self-employed");
+	occpuations.put("17",  "technician/engineer");
+	occpuations.put("18",  "tradesman/craftsman");
+	occpuations.put("19",  "unemployed");
+	occpuations.put("20",  "writer");
+	
+}
+	
+
+public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException{
 		String movieTable = "weipuz_movieInfo_1M";
 		String ratingTable = "weipuz_ratingInfo_1M";
 		String tempTable = "weipuz_temp";
 		String userTable = "weipuz_userInfo";
 		String tempTable_2 = "weipuz_temp_2";
 		String columnFamily = "data";
-		String qualifier = "Genres";
+		String qualifier_genres = "Genres";
+		String qualifier_age = "Age";
+		String qualifier_gender = "Gender";
+		String qualifier_occupation = "Occupation";
 		
-		System.out.println(movieTable + " " + ratingTable + " " + tempTable + " " +  qualifier);
+		System.out.println(movieTable + " " + ratingTable + " " + tempTable + " " +  tempTable_2);
 		
 		Configuration conf = HBaseConfiguration.create();
 		conf.set("hbase.zookeeper.quorum", "rcg-hadoop-01.rcg.sfu.ca,rcg-hadoop-02.rcg.sfu.ca,rcg-hadoop-03.rcg.sfu.ca");
 		conf.set("zookeeper.znode.parent", "/hbase-unsecure");
 		
-		// we can pass column family and qualifier in conf to reducers 
+		// we can pass column family and qualifier in conf to mapreduce jobs;
 		conf.set("conf.columnFamily", columnFamily);
-		conf.set("conf.qualifier", qualifier);
-		
+		conf.set("conf.qualifier_genres", qualifier_genres);
+		conf.set("conf.qualifier_age", qualifier_age);
+		conf.set("conf.qualifier_gender", qualifier_gender);
+		conf.set("conf.qualifier_occupation", qualifier_occupation);
+	/*	
 		List<Scan> scans = new ArrayList<Scan>(); 
 		Scan scan1 = new Scan();
 		scan1.setAttribute("scan.attributes.table.name", Bytes.toBytes(movieTable));
@@ -318,7 +351,7 @@ static class UserReducer_3 extends Reducer <Text, IntWritable, Text, IntWritable
 		scan2.setAttribute("scan.attributes.table.name", Bytes.toBytes(ratingTable));
 		System.out.println(scan2.getAttribute("scan.attributes.table.name"));
 		scans.add(scan2);
-		/*
+		
 		Job job = Job.getInstance(conf);
 	    TableMapReduceUtil.initTableMapperJob(scans, UserMapper_1.class,
 	    		Text.class, Text.class, job);
@@ -344,20 +377,20 @@ static class UserReducer_3 extends Reducer <Text, IntWritable, Text, IntWritable
 	    		UserReducer_2.class, job2);
 	    job2.setJarByClass(ExtractRatingCount.class);
 	    job2.waitForCompletion(true);
-	    
-		*/
+	    */
+		
 		Scan scan = new Scan();
 		Job job3 = Job.getInstance(conf);
 	    TableMapReduceUtil.initTableMapperJob(tempTable_2, scan, UserMapper_3.class,
 	    		Text.class, IntWritable.class, job3);
 		job3.setReducerClass(UserReducer_3.class);
 	    FileOutputFormat.setOutputPath(job3, new Path(TMP_DIR + "/output/"));
-	  /*  job3.setOutputKeyClass(Text.class);
+	    job3.setOutputKeyClass(Text.class);
 	    job3.setOutputValueClass(IntWritable.class);
 	    job3.setOutputFormatClass(SequenceFileOutputFormat.class);
 	    job3.setJarByClass(ExtractRatingCount.class);
-	    job3.waitForCompletion(true);
-	   */
+	  //  job3.waitForCompletion(true);
+	   
 		
 		
 		SequenceFile.Reader reader =
@@ -368,9 +401,6 @@ static class UserReducer_3 extends Reducer <Text, IntWritable, Text, IntWritable
     	try {
             BufferedWriter out = new BufferedWriter(new FileWriter("AgeDependency.csv"));
 			out.write("AgeGroup,Genre,Problity,\n");
-            //BufferedWriter GenOut = 
-            //BufferedWriter OccOut = 
-            //BufferedWriter out = AgeOut;
             String type = null;
             String group = null;
             String gerne = null;
@@ -378,7 +408,7 @@ static class UserReducer_3 extends Reducer <Text, IntWritable, Text, IntWritable
             int sum = 0;
             while(reader.next(data, count)){
             		String[] data_array = data.toString().split(":");
-            		
+            		//System.out.println(data);
             		if(type == null || group == null || gerne == null){
             			//first line;
             			type = data_array[0];

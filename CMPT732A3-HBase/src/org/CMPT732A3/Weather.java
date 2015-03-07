@@ -8,11 +8,13 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.filter.BinaryComparator;
+//import org.apache.hadoop.hbase.filter.BinaryComparator;
+//import org.apache.hadoop.hbase.filter.ByteArrayComparable;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.CompareFilter.CompareOp;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.FilterList;
+//import org.apache.hadoop.hbase.filter.QualifierFilter;
 import org.apache.hadoop.hbase.filter.RegexStringComparator;
 import org.apache.hadoop.hbase.filter.RowFilter;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
@@ -48,26 +50,28 @@ public class Weather {
 		table.put(p1);
 		*/
 		
+				
 		List<Filter> filters = new ArrayList<Filter>(2);
 		byte[] colfam = Bytes.toBytes("data");
 		byte[] fakeValue = Bytes.toBytes("0");
 		byte[] colA = Bytes.toBytes("SNOW");
 		//byte[] colB = Bytes.toBytes("col_B");
 
+	//	QualifierFilter filter = new QualifierFilter(CompareOp.EQUAL, new BinaryComparator(colA));
 		SingleColumnValueFilter filter1 = 
 		    new SingleColumnValueFilter(colfam, colA , CompareOp.NOT_EQUAL, fakeValue);  
 		filter1.setFilterIfMissing(true);
 		filters.add(filter1);
 		
 		Filter filter2 = new RowFilter(CompareFilter.CompareOp.EQUAL,
-			      new RegexStringComparator("USC."));
+			      new RegexStringComparator("USC"));
 		filters.add(filter2);
 		
 		FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL, filters);
-		
+			
 		Scan scan = new Scan();
 		scan.setFilter(filterList);
-		//scan.setCaching(20);
+		scan.setCaching(500);
 		ResultScanner sc = table.getScanner(scan);
 		// ??
 		// fix the output format to the following format
@@ -84,9 +88,9 @@ public class Weather {
 				
 				for (Cell cell : cellsc){
 					
-					//String row = new String(CellUtil.cloneRow(cell));
+					String row = new String(CellUtil.cloneRow(cell));
 					//String fam = new String(CellUtil.cloneFamily(cell));
-					//String qualifier = new String(CellUtil.cloneQualifier(cell));
+					String qualifier = new String(CellUtil.cloneQualifier(cell));
 					//System.out.println(row + "  " + qualifier);
 					int value = Integer.parseInt(new String(CellUtil.cloneValue(cell)));
 					if(value >max){
