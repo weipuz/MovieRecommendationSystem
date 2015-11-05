@@ -96,14 +96,8 @@ public class UserMovieDependency {
             }
 
             for (String user : users) {
-                byte[] rowkey = Bytes.toBytes(key.toString() + ":" + user); // movieID
-                // +
-                // :
-                // +
-                // userID
-                // as
-                // row
-                // key;
+                byte[] rowkey = Bytes.toBytes(key.toString() + ":" + user); 
+                // movieID+:+userID as row key;
                 Put put = new Put(rowkey);
                 put.add(Bytes.toBytes("data"), Bytes.toBytes("Genres"),
                         Bytes.toBytes(genres));
@@ -229,14 +223,8 @@ public class UserMovieDependency {
             for (String movie : movieinfo) {
                 String movieID = movie.split(":")[0];
                 String genres = movie.split(":")[1];
-                byte[] rowkey = Bytes.toBytes(movieID + ":" + key.toString()); // movieID
-                // +
-                // :
-                // +
-                // userID
-                // as
-                // row
-                // key;
+                byte[] rowkey = Bytes.toBytes(movieID + ":" + key.toString()); 
+                // movieID+:+userID as row key;
                 Put put = new Put(rowkey);
                 put.add(Bytes.toBytes("data"), Bytes.toBytes("Age"),
                         Bytes.toBytes(age));
@@ -442,7 +430,7 @@ public class UserMovieDependency {
         job3.setOutputValueClass(IntWritable.class);
         job3.setOutputFormatClass(SequenceFileOutputFormat.class);
         job3.setJarByClass(ExtractRatingCount.class);
-        // job3.waitForCompletion(true);
+        job3.waitForCompletion(true);
 
         SequenceFile.Reader reader = new SequenceFile.Reader(
                 job3.getConfiguration(), SequenceFile.Reader.file(new Path(
